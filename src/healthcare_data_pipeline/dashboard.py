@@ -8,7 +8,9 @@ from healthcare_data_pipeline.io_utils import read_json_file
 
 
 def build_dashboard_payload(
-    fact_encounters: list[dict[str, object]], quality_results: list[dict[str, object]]
+    fact_encounters: list[dict[str, object]],
+    quality_results: list[dict[str, object]],
+    reconciliation_results: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     total_encounters = len(fact_encounters)
     total_paid_amount = round(sum(float(row["paid_amount"]) for row in fact_encounters), 2)
@@ -19,26 +21,38 @@ def build_dashboard_payload(
     quality_pass_rate = round(
         sum(1 for row in quality_results if row["passed"]) / max(len(quality_results), 1), 2
     )
+    reconciliation_results = reconciliation_results or []
+    missing_claim_count = sum(
+        1
+        for row in reconciliation_results
+        if row.get("reconciliation_status") == "missing_claim"
+    )
     return {
         "headline_metrics": {
             "total_encounters": total_encounters,
             "total_paid_amount": total_paid_amount,
             "average_wait_minutes": average_wait,
             "quality_pass_rate": quality_pass_rate,
+            "missing_claim_count": missing_claim_count,
         },
         "payer_mix": dict(payer_mix),
         "encounters": fact_encounters,
         "quality_results": quality_results,
+        "reconciliation_results": reconciliation_results,
     }
 
 
 def load_dashboard_payload(base_dir: str | Path | None = None) -> dict[str, object] | None:
     root = Path(base_dir or settings.platform.local_data_dir) / "demo_output"
     fact_path = root / "gold" / "fact_encounters.json"
+    reconciliation_path = root / "gold" / "claims_reconciliation.json"
     quality_path = root / "quality" / "quality_results.json"
     if not fact_path.exists() or not quality_path.exists():
         return None
 
     fact_encounters = read_json_file(fact_path)
     quality_results = read_json_file(quality_path)
-    return build_dashboard_payload(fact_encounters, quality_results)
+    reconciliation_results = (
+        read_json_file(reconciliation_path) if reconciliation_path.exists() else []
+    )
+    return build_dashboard_payload(fact_encounters, quality_results, reconciliation_results)

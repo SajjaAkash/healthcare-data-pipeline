@@ -52,6 +52,46 @@ def validate_patient_references(
     )
 
 
+def validate_encounter_claim_coverage(
+    appointments: list[dict[str, object]], claims: list[dict[str, object]]
+) -> QualityResult:
+    appointment_ids = {str(record["encounter_id"]) for record in appointments}
+    claim_ids = {str(record["encounter_id"]) for record in claims}
+    missing_claims = sorted(appointment_ids - claim_ids)
+    if missing_claims:
+        return QualityResult(
+            rule_name="encounter_claim_coverage",
+            passed=False,
+            detail=f"missing_claims={','.join(missing_claims[:5])}",
+        )
+    return QualityResult(
+        rule_name="encounter_claim_coverage",
+        passed=True,
+        detail="All encounters have matching claims.",
+    )
+
+
+def validate_paid_amount_not_exceed_allowed(
+    claims: list[dict[str, object]],
+) -> QualityResult:
+    invalid_claims = sorted(
+        str(record["claim_id"])
+        for record in claims
+        if float(record["paid_amount"]) > float(record["allowed_amount"])
+    )
+    if invalid_claims:
+        return QualityResult(
+            rule_name="paid_amount_not_exceed_allowed",
+            passed=False,
+            detail="invalid_claim_ids=" + ",".join(invalid_claims[:5]),
+        )
+    return QualityResult(
+        rule_name="paid_amount_not_exceed_allowed",
+        passed=True,
+        detail="All paid amounts are within allowed amounts.",
+    )
+
+
 def validate_freshness(loaded_at: datetime, current_time: datetime | None = None) -> QualityResult:
     current = current_time or datetime.now(UTC)
     age_hours = (current - loaded_at).total_seconds() / 3600
@@ -65,6 +105,7 @@ def validate_freshness(loaded_at: datetime, current_time: datetime | None = None
 
 def run_quality_suite(
     patients: list[dict[str, object]],
+    appointments: list[dict[str, object]],
     claims: list[dict[str, object]],
     loaded_at: datetime,
 ) -> list[QualityResult]:
@@ -72,5 +113,7 @@ def run_quality_suite(
         validate_required_fields("patients", patients, settings.quality.required_patient_fields),
         validate_required_fields("claims", claims, settings.quality.required_claim_fields),
         validate_patient_references(claims, patients),
+        validate_encounter_claim_coverage(appointments, claims),
+        validate_paid_amount_not_exceed_allowed(claims),
         validate_freshness(loaded_at=loaded_at),
     ]

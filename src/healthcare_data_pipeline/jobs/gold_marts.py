@@ -46,6 +46,70 @@ def build_fact_encounters(
     return facts
 
 
+def build_dim_patient_current(
+    patients: list[dict[str, object]],
+    appointments: list[dict[str, object]],
+    claims: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    appointments_by_patient = Counter(str(row["patient_id"]) for row in appointments)
+    allowed_by_patient: dict[str, float] = {}
+    payer_mix_by_patient: dict[str, set[str]] = {}
+    for claim in claims:
+        patient_id = str(claim["patient_id"])
+        allowed_by_patient[patient_id] = allowed_by_patient.get(patient_id, 0.0) + float(
+            claim["allowed_amount"]
+        )
+        payer_mix_by_patient.setdefault(patient_id, set()).add(str(claim["payer_name"]))
+
+    return [
+        {
+            "patient_id": patient["patient_id"],
+            "state": patient["state"],
+            "gender": patient["gender"],
+            "birth_year": patient["birth_year"],
+            "encounter_count": appointments_by_patient.get(str(patient["patient_id"]), 0),
+            "payer_count": len(payer_mix_by_patient.get(str(patient["patient_id"]), set())),
+            "total_allowed_amount": round(
+                allowed_by_patient.get(str(patient["patient_id"]), 0.0), 2
+            ),
+        }
+        for patient in patients
+    ]
+
+
+def build_claims_reconciliation(
+    appointments: list[dict[str, object]],
+    claims: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    appointment_index = {str(row["encounter_id"]): row for row in appointments}
+    claim_index = {str(row["encounter_id"]): row for row in claims}
+    encounter_ids = sorted(set(appointment_index) | set(claim_index))
+    reconciliation: list[dict[str, object]] = []
+    for encounter_id in encounter_ids:
+        appointment = appointment_index.get(encounter_id)
+        claim = claim_index.get(encounter_id)
+        status = "matched"
+        if appointment and not claim:
+            status = "missing_claim"
+        elif claim and not appointment:
+            status = "orphan_claim"
+
+        reconciliation.append(
+            {
+                "encounter_id": encounter_id,
+                "appointment_present": appointment is not None,
+                "claim_present": claim is not None,
+                "reconciliation_status": status,
+                "appointment_status": appointment.get("appointment_status", "unknown")
+                if appointment
+                else "not_found",
+                "allowed_amount": float(claim.get("allowed_amount", 0.0)) if claim else 0.0,
+                "paid_amount": float(claim.get("paid_amount", 0.0)) if claim else 0.0,
+            }
+        )
+    return reconciliation
+
+
 def build_kpi_metrics(
     fact_encounters: list[dict[str, object]], report_date: str
 ) -> list[PipelineMetric]:

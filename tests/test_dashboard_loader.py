@@ -25,6 +25,10 @@ def test_load_dashboard_payload_reads_demo_output(tmp_path: Path) -> None:
         json.dumps([{"rule_name": "rule", "passed": True, "detail": "ok"}]),
         encoding="utf-8",
     )
+    (output_root / "gold" / "claims_reconciliation.json").write_text(
+        json.dumps([{"reconciliation_status": "matched"}]),
+        encoding="utf-8",
+    )
 
     payload = load_dashboard_payload(base_dir=tmp_path)
 

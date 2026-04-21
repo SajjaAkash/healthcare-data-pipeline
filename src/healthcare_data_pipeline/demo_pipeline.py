@@ -7,7 +7,9 @@ from pathlib import Path
 from healthcare_data_pipeline.config import settings
 from healthcare_data_pipeline.io_utils import read_json_file, write_json_file
 from healthcare_data_pipeline.jobs.gold_marts import (
+    build_claims_reconciliation,
     build_dim_date,
+    build_dim_patient_current,
     build_fact_encounters,
     build_kpi_metrics,
 )
@@ -42,7 +44,11 @@ def run_demo_pipeline(base_dir: str | Path | None = None) -> dict[str, object]:
     silver_appointments = normalize_appointments(bronze_appointments)
 
     dim_date = build_dim_date(silver_appointments)
+    dim_patient_current = build_dim_patient_current(
+        silver_patients, silver_appointments, silver_claims
+    )
     fact_encounters = build_fact_encounters(silver_appointments, silver_claims)
+    claims_reconciliation = build_claims_reconciliation(silver_appointments, silver_claims)
     report_date = (
         dim_date[-1]["calendar_date"] if dim_date else datetime.now(UTC).date().isoformat()
     )
@@ -51,6 +57,7 @@ def run_demo_pipeline(base_dir: str | Path | None = None) -> dict[str, object]:
         asdict(result)
         for result in run_quality_suite(
             patients=silver_patients,
+            appointments=silver_appointments,
             claims=silver_claims,
             loaded_at=datetime.now(UTC),
         )
@@ -60,7 +67,9 @@ def run_demo_pipeline(base_dir: str | Path | None = None) -> dict[str, object]:
     write_json_file(output_dir / "silver" / "claims.json", silver_claims)
     write_json_file(output_dir / "silver" / "appointments.json", silver_appointments)
     write_json_file(output_dir / "gold" / "dim_date.json", dim_date)
+    write_json_file(output_dir / "gold" / "dim_patient_current.json", dim_patient_current)
     write_json_file(output_dir / "gold" / "fact_encounters.json", fact_encounters)
+    write_json_file(output_dir / "gold" / "claims_reconciliation.json", claims_reconciliation)
     write_json_file(output_dir / "gold" / "kpi_metrics.json", kpi_metrics)
     write_json_file(output_dir / "quality" / "quality_results.json", quality_results)
 
@@ -69,7 +78,9 @@ def run_demo_pipeline(base_dir: str | Path | None = None) -> dict[str, object]:
         "silver_claims": silver_claims,
         "silver_appointments": silver_appointments,
         "dim_date": dim_date,
+        "dim_patient_current": dim_patient_current,
         "fact_encounters": fact_encounters,
+        "claims_reconciliation": claims_reconciliation,
         "kpi_metrics": kpi_metrics,
         "quality_results": quality_results,
         "output_dir": str(output_dir),

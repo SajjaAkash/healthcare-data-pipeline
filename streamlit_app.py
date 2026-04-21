@@ -49,12 +49,33 @@ SAMPLE_QUALITY = [
     {"rule_name": "source_freshness", "passed": True, "detail": "age_hours=4.00, sla_hours=24"},
 ]
 
+SAMPLE_RECONCILIATION = [
+    {
+        "encounter_id": "E100",
+        "appointment_present": True,
+        "claim_present": True,
+        "reconciliation_status": "matched",
+        "appointment_status": "completed",
+        "allowed_amount": 310.0,
+        "paid_amount": 285.0,
+    },
+    {
+        "encounter_id": "E101",
+        "appointment_present": True,
+        "claim_present": False,
+        "reconciliation_status": "missing_claim",
+        "appointment_status": "completed",
+        "allowed_amount": 0.0,
+        "paid_amount": 0.0,
+    },
+]
+
 
 def main() -> None:
     st.set_page_config(page_title="Healthcare Data Pipeline", layout="wide")
     payload = load_dashboard_payload()
     if payload is None:
-        payload = build_dashboard_payload(SAMPLE_FACTS, SAMPLE_QUALITY)
+        payload = build_dashboard_payload(SAMPLE_FACTS, SAMPLE_QUALITY, SAMPLE_RECONCILIATION)
         st.info(
             "Showing bundled sample data. Run `python -m healthcare_data_pipeline.demo_pipeline` "
             "to generate local Gold outputs for the dashboard."
@@ -70,10 +91,13 @@ def main() -> None:
     col1.metric("Total Encounters", metrics["total_encounters"])
     col2.metric("Total Paid Amount", f"${metrics['total_paid_amount']:.2f}")
     col3.metric("Average Wait (min)", metrics["average_wait_minutes"])
-    col4.metric("Quality Pass Rate", f"{metrics['quality_pass_rate'] * 100:.0f}%")
+    col4.metric("Missing Claims", metrics["missing_claim_count"])
 
     st.subheader("Payer Mix")
     st.bar_chart(payload["payer_mix"])
+
+    st.subheader("Claims Reconciliation")
+    st.dataframe(payload["reconciliation_results"], use_container_width=True)
 
     st.subheader("Encounter Detail")
     st.dataframe(payload["encounters"], use_container_width=True)

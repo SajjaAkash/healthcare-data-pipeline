@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.streamlit/
+.env
+dist/
+build/
+data/demo_output/**
+!data/demo_output/.gitkeep
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/

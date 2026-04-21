@@ -1,0 +1,38 @@
+[
+  {
+    "claim_id": "C100",
+    "patient_id": "P100",
+    "provider_id": "DR10",
+    "encounter_id": "E100",
+    "procedure_category": "Cardiology",
+    "payer_name": "Blue Cross",
+    "billed_amount": 340.0,
+    "allowed_amount": 310.0,
+    "paid_amount": 285.0,
+    "service_date": "2026-04-20"
+  },
+  {
+    "claim_id": "C101",
+    "patient_id": "P101",
+    "provider_id": "DR11",
+    "encounter_id": "E101",
+    "procedure_category": "Preventive",
+    "payer_name": "Aetna",
+    "billed_amount": 155.0,
+    "allowed_amount": 140.0,
+    "paid_amount": 140.0,
+    "service_date": "2026-04-20"
+  },
+  {
+    "claim_id": "C102",
+    "patient_id": "P102",
+    "provider_id": "DR12",
+    "encounter_id": "E102",
+    "procedure_category": "Orthopedics",
+    "payer_name": "United Healthcare",
+    "billed_amount": 415.0,
+    "allowed_amount": 390.0,
+    "paid_amount": 350.0,
+    "service_date": "2026-04-20"
+  }
+]

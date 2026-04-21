@@ -1,0 +1,32 @@
+[
+  {
+    "encounter_id": "E100",
+    "patient_id": "P100",
+    "provider_id": "DR10",
+    "appointment_date": "2026-04-20",
+    "appointment_status": "completed",
+    "clinic_name": "Cardiology",
+    "wait_minutes": 18,
+    "outcome_score": 4.4
+  },
+  {
+    "encounter_id": "E101",
+    "patient_id": "P101",
+    "provider_id": "DR11",
+    "appointment_date": "2026-04-20",
+    "appointment_status": "completed",
+    "clinic_name": "Primary Care",
+    "wait_minutes": 11,
+    "outcome_score": 4.8
+  },
+  {
+    "encounter_id": "E102",
+    "patient_id": "P102",
+    "provider_id": "DR12",
+    "appointment_date": "2026-04-20",
+    "appointment_status": "completed",
+    "clinic_name": "Orthopedics",
+    "wait_minutes": 24,
+    "outcome_score": 4.1
+  }
+]

@@ -1,0 +1,1 @@
+python -m healthcare_data_pipeline.demo_pipeline

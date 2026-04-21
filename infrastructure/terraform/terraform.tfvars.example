@@ -1,0 +1,8 @@
+project_name        = "healthcare-data-pipeline"
+location            = "eastus2"
+resource_group_name = "rg-healthcare-data-platform"
+storage_account_name = "sthealthcareanalytics"
+key_vault_name      = "kv-healthcare-data-platform"
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+tenant_id           = "00000000-0000-0000-0000-000000000000"
+databricks_workspace_url = "https://adb-1234567890123456.7.azuredatabricks.net"

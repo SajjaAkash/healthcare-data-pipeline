@@ -1,0 +1,23 @@
+[
+  {
+    "patient_id": "P100",
+    "full_name": "Jane Doe",
+    "gender": "female",
+    "state": "tx",
+    "birth_year": 1988
+  },
+  {
+    "patient_id": "P101",
+    "full_name": "Carlos Ruiz",
+    "gender": "male",
+    "state": "il",
+    "birth_year": 1979
+  },
+  {
+    "patient_id": "P102",
+    "full_name": "Asha Patel",
+    "gender": "female",
+    "state": "ca",
+    "birth_year": 1992
+  }
+]

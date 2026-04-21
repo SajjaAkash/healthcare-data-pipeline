@@ -27,6 +27,25 @@ def build_dashboard_payload(
         for row in reconciliation_results
         if row.get("reconciliation_status") == "missing_claim"
     )
+    matched_count = sum(
+        1 for row in reconciliation_results if row.get("reconciliation_status") == "matched"
+    )
+    orphan_claim_count = sum(
+        1 for row in reconciliation_results if row.get("reconciliation_status") == "orphan_claim"
+    )
+    watchlist = [
+        row
+        for row in reconciliation_results
+        if row.get("reconciliation_status") != "matched"
+    ]
+    quality_alerts = [
+        row for row in quality_results if not bool(row.get("passed"))
+    ]
+    risk_band = "stable"
+    if missing_claim_count or orphan_claim_count:
+        risk_band = "watch"
+    if quality_alerts:
+        risk_band = "critical"
     return {
         "headline_metrics": {
             "total_encounters": total_encounters,
@@ -34,11 +53,20 @@ def build_dashboard_payload(
             "average_wait_minutes": average_wait,
             "quality_pass_rate": quality_pass_rate,
             "missing_claim_count": missing_claim_count,
+            "matched_count": matched_count,
+            "orphan_claim_count": orphan_claim_count,
+            "risk_band": risk_band,
         },
         "payer_mix": dict(payer_mix),
+        "payer_mix_rows": [
+            {"payer_name": payer_name, "encounter_count": count}
+            for payer_name, count in payer_mix.most_common()
+        ],
         "encounters": fact_encounters,
         "quality_results": quality_results,
+        "quality_alerts": quality_alerts,
         "reconciliation_results": reconciliation_results,
+        "reconciliation_watchlist": watchlist,
     }
 
 

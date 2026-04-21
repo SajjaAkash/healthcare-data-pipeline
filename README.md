@@ -104,11 +104,10 @@ flowchart LR
    Copy-Item infrastructure/terraform/terraform.tfvars.example infrastructure/terraform/terraform.tfvars
    ```
 
-5. Start the dashboard locally:
+5. Start the clinical integrity console locally:
 
    ```powershell
-   python -m healthcare_data_pipeline.demo_pipeline
-   streamlit run streamlit_app.py
+   scripts/run_integrity_console.ps1
    ```
 
 ## Demo Run
@@ -126,7 +125,7 @@ This writes generated outputs under `data/demo_output/`:
 - `gold/claims_reconciliation.json`
 - `quality/quality_results.json`
 
-The Streamlit app automatically reads those files when present.
+The Streamlit console automatically reads those files when present.
 
 ## Local Development Notes
 

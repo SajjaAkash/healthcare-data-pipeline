@@ -8,6 +8,7 @@ encounters, claims, and patient dimensions analytically reliable rather than jus
 
 - Reconciliation between operational encounters and adjudicated claims.
 - Patient-centric dimensional outputs that reduce duplicate business logic across teams.
+- Protected patient outputs and release-gating semantics for safer downstream consumption.
 - Data quality rules that reflect healthcare reporting risk, not just generic null checks.
 - Azure-native orchestration and deployment patterns for a governed analytics platform.
 - A lightweight dashboard used to expose reconciliation and data quality posture, not replace the warehouse.
@@ -52,6 +53,7 @@ flowchart LR
 - It treats data correctness as a domain problem, not just a parsing problem.
 - It explicitly models encounter-to-claim coverage, which is the kind of gap stakeholders actually ask about.
 - It publishes patient-centric outputs and reconciliation outputs separately because they serve different consumers.
+- It includes a publish/no-publish release gate, which is closer to how sensitive reporting pipelines are actually operated.
 - It uses the UI to surface trust signals instead of pretending the dashboard is the platform.
 
 ## Repository Layout
@@ -72,7 +74,7 @@ flowchart LR
 | Azure | ADLS Gen2-style storage, Key Vault, managed identity, role assignments, App Service, and resource group in Terraform |
 | PySpark | Bronze ingestion, Silver normalization, Gold dimensional modeling, and reconciliation helpers |
 | Airflow | Daily DAG orchestrating Azure Databricks-style Bronze/Silver/Gold execution and quality publication |
-| Governance | Encounter-to-claim reconciliation plus patient-centric reusable analytics outputs |
+| Governance | Encounter-to-claim reconciliation, protected patient outputs, and release-gated publication |
 | Streamlit | Monitoring view for payer mix, reconciliation posture, and quality status |
 
 ## Quick Start
@@ -121,8 +123,10 @@ If you want a fast local walkthrough without live Azure services:
 This writes generated outputs under `data/demo_output/`:
 
 - `silver/patients.json`, `silver/claims.json`, `silver/appointments.json`
+- `silver/patients_protected.json`
 - `gold/dim_date.json`, `gold/dim_patient_current.json`, `gold/fact_encounters.json`, `gold/kpi_metrics.json`
 - `gold/claims_reconciliation.json`
+- `governance/reconciliation_audit.json`, `governance/release_decision.json`
 - `quality/quality_results.json`
 
 The Streamlit console automatically reads those files when present.

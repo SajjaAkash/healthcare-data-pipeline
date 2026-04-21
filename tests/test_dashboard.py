@@ -8,6 +8,7 @@ def test_build_dashboard_payload_produces_headline_metrics() -> None:
             {"paid_amount": 175.0, "wait_minutes": 20, "payer_name": "Blue Cross"},
         ],
         reconciliation_results=[{"reconciliation_status": "missing_claim"}],
+        release_decision={"publish_allowed": False, "blockers": ["missing_claim_rate_exceeded"]},
         quality_results=[
             {"rule_name": "rule_1", "passed": True},
             {"rule_name": "rule_2", "passed": False},
@@ -18,3 +19,4 @@ def test_build_dashboard_payload_produces_headline_metrics() -> None:
     assert payload["headline_metrics"]["total_paid_amount"] == 300.0
     assert payload["headline_metrics"]["quality_pass_rate"] == 0.5
     assert payload["headline_metrics"]["missing_claim_count"] == 1
+    assert payload["headline_metrics"]["publish_allowed"] is False

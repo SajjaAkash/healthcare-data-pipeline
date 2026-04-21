@@ -11,6 +11,7 @@ def build_dashboard_payload(
     fact_encounters: list[dict[str, object]],
     quality_results: list[dict[str, object]],
     reconciliation_results: list[dict[str, object]] | None = None,
+    release_decision: dict[str, object] | None = None,
 ) -> dict[str, object]:
     total_encounters = len(fact_encounters)
     total_paid_amount = round(sum(float(row["paid_amount"]) for row in fact_encounters), 2)
@@ -41,10 +42,13 @@ def build_dashboard_payload(
     quality_alerts = [
         row for row in quality_results if not bool(row.get("passed"))
     ]
+    release_decision = release_decision or {"publish_allowed": True, "blockers": []}
     risk_band = "stable"
     if missing_claim_count or orphan_claim_count:
         risk_band = "watch"
     if quality_alerts:
+        risk_band = "critical"
+    if not bool(release_decision.get("publish_allowed", True)):
         risk_band = "critical"
     return {
         "headline_metrics": {
@@ -56,6 +60,7 @@ def build_dashboard_payload(
             "matched_count": matched_count,
             "orphan_claim_count": orphan_claim_count,
             "risk_band": risk_band,
+            "publish_allowed": bool(release_decision.get("publish_allowed", True)),
         },
         "payer_mix": dict(payer_mix),
         "payer_mix_rows": [
@@ -67,6 +72,7 @@ def build_dashboard_payload(
         "quality_alerts": quality_alerts,
         "reconciliation_results": reconciliation_results,
         "reconciliation_watchlist": watchlist,
+        "release_decision": release_decision,
     }
 
 
@@ -75,6 +81,7 @@ def load_dashboard_payload(base_dir: str | Path | None = None) -> dict[str, obje
     fact_path = root / "gold" / "fact_encounters.json"
     reconciliation_path = root / "gold" / "claims_reconciliation.json"
     quality_path = root / "quality" / "quality_results.json"
+    release_path = root / "governance" / "release_decision.json"
     if not fact_path.exists() or not quality_path.exists():
         return None
 
@@ -83,4 +90,7 @@ def load_dashboard_payload(base_dir: str | Path | None = None) -> dict[str, obje
     reconciliation_results = (
         read_json_file(reconciliation_path) if reconciliation_path.exists() else []
     )
-    return build_dashboard_payload(fact_encounters, quality_results, reconciliation_results)
+    release_decision = read_json_file(release_path) if release_path.exists() else {}
+    return build_dashboard_payload(
+        fact_encounters, quality_results, reconciliation_results, release_decision
+    )

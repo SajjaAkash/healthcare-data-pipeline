@@ -42,3 +42,14 @@ def build_dashboard_publish_command(execution_date: str) -> str:
         "python -m healthcare_data_pipeline.demo_pipeline && "
         f'echo "Publishing KPI dataset to {destination}"'
     )
+
+
+def build_release_gate_summary(
+    audit_summary: dict[str, object], release_decision: dict[str, object]
+) -> str:
+    return (
+        f"missing_claim_rate={audit_summary['missing_claim_rate']}; "
+        f"orphan_claim_rate={audit_summary['orphan_claim_rate']}; "
+        f"publish_allowed={release_decision['publish_allowed']}; "
+        f"blockers={','.join(release_decision['blockers']) or 'none'}"
+    )

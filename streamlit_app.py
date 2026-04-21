@@ -70,12 +70,19 @@ SAMPLE_RECONCILIATION = [
     },
 ]
 
+SAMPLE_RELEASE = {
+    "publish_allowed": False,
+    "blockers": ["missing_claim_rate_exceeded"],
+}
+
 
 def main() -> None:
     st.set_page_config(page_title="Clinical Integrity Console", layout="wide")
     payload = load_dashboard_payload()
     if payload is None:
-        payload = build_dashboard_payload(SAMPLE_FACTS, SAMPLE_QUALITY, SAMPLE_RECONCILIATION)
+        payload = build_dashboard_payload(
+            SAMPLE_FACTS, SAMPLE_QUALITY, SAMPLE_RECONCILIATION, SAMPLE_RELEASE
+        )
         st.info(
             "Showing bundled sample data. Run `python -m healthcare_data_pipeline.demo_pipeline` "
             "to generate local Gold outputs for the dashboard."
@@ -135,6 +142,12 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
+    if not metrics["publish_allowed"]:
+        st.error(
+            "Release gate is closed for this batch. Downstream publication should remain blocked "
+            "until reconciliation blockers are cleared."
+        )
+
     summary_col, throughput_col, finance_col, ops_col = st.columns(4)
     summary_col.metric("Matched Encounters", metrics["matched_count"])
     throughput_col.metric("Total Encounters", metrics["total_encounters"])
@@ -171,11 +184,15 @@ def main() -> None:
         st.dataframe(payload["quality_results"], use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    reconciliation_tab, quality_tab = st.tabs(["Reconciliation Ledger", "Quality Ledger"])
+    reconciliation_tab, quality_tab, release_tab = st.tabs(
+        ["Reconciliation Ledger", "Quality Ledger", "Release Gate"]
+    )
     with reconciliation_tab:
         st.dataframe(payload["reconciliation_results"], use_container_width=True)
     with quality_tab:
         st.dataframe(payload["quality_results"], use_container_width=True)
+    with release_tab:
+        st.json(payload["release_decision"])
 
 
 if __name__ == "__main__":

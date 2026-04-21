@@ -51,6 +51,8 @@ class SourceSettings:
 @dataclass(frozen=True)
 class QualitySettings:
     freshness_sla_hours: int = _int_env("FRESHNESS_SLA_HOURS", 24)
+    max_missing_claim_rate: int = _int_env("MAX_MISSING_CLAIM_RATE_BPS", 1500)
+    max_orphan_claim_rate: int = _int_env("MAX_ORPHAN_CLAIM_RATE_BPS", 200)
     required_claim_fields: tuple[str, ...] = ("claim_id", "patient_id", "allowed_amount")
     required_patient_fields: tuple[str, ...] = ("patient_id", "gender", "state")
 
@@ -61,6 +63,7 @@ class PlatformSettings:
     environment: str = os.getenv("ENVIRONMENT", "dev")
     airflow_schedule: str = os.getenv("AIRFLOW_SCHEDULE", "@daily")
     local_data_dir: str = os.getenv("LOCAL_DATA_DIR", "data")
+    phi_hash_salt: str = os.getenv("PHI_HASH_SALT", "healthcare-demo-salt")
 
 
 @dataclass(frozen=True)

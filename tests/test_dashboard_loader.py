@@ -29,6 +29,11 @@ def test_load_dashboard_payload_reads_demo_output(tmp_path: Path) -> None:
         json.dumps([{"reconciliation_status": "matched"}]),
         encoding="utf-8",
     )
+    (output_root / "governance").mkdir(parents=True, exist_ok=True)
+    (output_root / "governance" / "release_decision.json").write_text(
+        json.dumps({"publish_allowed": True, "blockers": []}),
+        encoding="utf-8",
+    )
 
     payload = load_dashboard_payload(base_dir=tmp_path)
 
